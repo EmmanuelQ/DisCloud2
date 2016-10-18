@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "754000532911",
+    "firebase_url": "https://disccloud-545ed.firebaseio.com",
+    "project_id": "disccloud-545ed",
+    "storage_bucket": "disccloud-545ed.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:754000532911:android:49ce8bff1da51e99",
+        "android_client_info": {
+          "package_name": "com.hoarder.emmanuel.disccloud"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "754000532911-fth7cv33rbp69lkdtdtdqvivhd9coiuf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hoarder.emmanuel.disccloud",
+            "certificate_hash": "31E28FBA47B2961E52E228C5D135766EE653E1BB"
+          }
+        },
+        {
+          "client_id": "754000532911-0fm2o8vcbkpet23kq8iosf7uj7mp7ib7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCP3WLgFOErG6UY86SC1jPHcZ9y970cg1s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "754000532911-0fm2o8vcbkpet23kq8iosf7uj7mp7ib7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
