@@ -25,7 +25,7 @@ public class ImageCorrection {
     private int hashvalue;
     private Context context;
     private String TAG = "MAIN ACTIVITY";
-    Bitmap img = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
+    Bitmap img = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
 
 
 
@@ -34,14 +34,9 @@ public class ImageCorrection {
 
 
         Mat readyImg = prepareImg(image1);
-        Mat readyImg2 = prepareImg(image2);
-        Mat rotatedImg = new Mat();
-
-        String hash1 = calcHash(getAvg(readyImg), readyImg);
-        String hash2;
 
 
-        
+        /*
         for(int i = 0; i < 91; i++){
 
             rotatedImg = rotateImg((double) i, readyImg2);
@@ -51,14 +46,13 @@ public class ImageCorrection {
 
             Log.d(TAG, " The hash value at: " + (double) i + " degrees is " + hashvalue);
 
-
-        }
-
+        }*/
 
 
 
 
-       // Utils.matToBitmap(rotatedImg, img);
+
+       Utils.matToBitmap(readyImg, img);
 
 
 
@@ -124,22 +118,36 @@ public class ImageCorrection {
         Mat matImg = new Mat();
         Mat newImg = new Mat();
         Mat greyImg = new Mat();
+        Mat edgedImg = new Mat();
 
+        int kernelSize = 5;
 
-
-        Size sz = new Size(32, 32);
+        int sz =  100;
 
         //Get img drawable and convert to bitmap
         Bitmap bMap = BitmapFactory.decodeResource(context.getResources(), imgId);
 
         //Now convert to Mat then reduce size to 32px and greyscale img
         Utils.bitmapToMat(bMap, matImg);
-        Imgproc.resize(matImg, newImg, sz);
+
+        int ratio = sz / matImg.rows();
+
+        Imgproc.resize(matImg, newImg, new Size(100, matImg.cols()*ratio));
+
+
+
+
+
         Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
 
+        Imgproc.medianBlur(greyImg, greyImg, kernelSize);
+
+        Imgproc.Canny(greyImg, edgedImg, 30, 200);
 
 
-        return greyImg;
+
+
+        return edgedImg;
 
     }
 
