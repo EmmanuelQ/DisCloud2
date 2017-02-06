@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private Button camButton;
+    private Button collectionButton;
+    private Button marketplaceButton;
     public static final String TAG = "MAIN ACTIVITY";
 
     private ActionBarDrawerToggle drawerToggle;
@@ -108,6 +110,19 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        collectionButton = (Button) findViewById(R.id.collection_button);
+        collectionButton.setOnClickListener(new View.OnClickListener(){
+
+            public void onClick(View view){
+                Intent intent = new Intent(MainActivity.this, My_Collection.class);
+                startActivity(intent);
+
+            }
+        });
+
+
+
     }
 
 

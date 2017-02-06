@@ -25,7 +25,7 @@ public class ImageCorrection {
     private int hashvalue;
     private Context context;
     private String TAG = "MAIN ACTIVITY";
-    Bitmap img = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+
 
 
 
@@ -52,7 +52,7 @@ public class ImageCorrection {
 
 
 
-       Utils.matToBitmap(readyImg, img);
+
 
 
 

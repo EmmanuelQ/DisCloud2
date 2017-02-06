@@ -8,32 +8,74 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout
+
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
-
-
-
 
         <include
             layout="@layout/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            />
 
+
+        <Button
+
+            android:layout_width="350dp"
+            android:layout_height="350dp"
+            android:id="@+id/scanner_button"
+            android:layout_gravity="center"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/roundedbutton"
+            android:drawableTop="@drawable/scanner_icon"
+            android:paddingTop="120dp"
+            android:text="Scanner"
+            android:textColor="#FFFFFF"
+            android:textSize="13pt"
             />
 
         <Button
-            android:text="Button"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:id="@+id/scanner_button"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:background="@drawable/roundedbutton"/>
+            android:layout_width="350dp"
+            android:layout_height="350dp"
+            android:id="@+id/collection_button"
+            android:layout_gravity="center"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/roundedbutton3"
+            android:drawableTop="@drawable/my_collection_icon2"
+            android:paddingTop="120dp"
+            android:text="My Collection"
+            android:textColor="#FFFFFF"
+            android:textSize="13pt"/>
 
 
-    </RelativeLayout>
+
+
+
+        <Button
+            android:layout_width="350dp"
+            android:layout_height="350dp"
+            android:id="@+id/marketplace_button"
+            android:layout_gravity="center"
+            android:layout_marginTop="80dp"
+            android:layout_marginBottom="130dp"
+            android:background="@drawable/roundedbutton4"
+            android:drawableTop="@drawable/market_place_icon"
+            android:paddingTop="120dp"
+            android:text="MarketPlace"
+            android:textColor="#FFFFFF"
+            android:textSize="13pt"/>
+
+
+
+
+        </LinearLayout>
+    </ScrollView>
 
 
     <android.support.design.widget.NavigationView
@@ -42,7 +84,9 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@android:color/white"
-        app:menu="@menu/drawer_view"/>
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/drawer_view"
+        />
 
 
 
