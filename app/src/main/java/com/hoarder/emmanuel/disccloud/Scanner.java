@@ -312,6 +312,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         int lgst;
         int smlst = -1;
         int smlstId = 0;
+        int lgstID;
         List<Point> sorted = new ArrayList<>();
 
 
