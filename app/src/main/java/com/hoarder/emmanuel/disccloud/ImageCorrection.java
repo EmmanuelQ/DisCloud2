@@ -7,10 +7,17 @@ import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.Point;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 
 import static com.hoarder.emmanuel.disccloud.MainActivity.TAG;
@@ -20,7 +27,7 @@ import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
  * Created by emman on 15/10/2016.
  */
 
-public class ImageCorrection {
+public class ImageCorrection  {
 
     private int hashvalue;
     private Context context;
@@ -29,30 +36,25 @@ public class ImageCorrection {
 
 
 
-    ImageCorrection(Context context, int image1, int image2){
-        this.context = context;
+    ImageCorrection() throws Exception{
 
 
-        Mat readyImg = prepareImg(image1);
+        Log.d(TAG, "HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE");
+
+          String hash1;
 
 
-        /*
-        for(int i = 0; i < 91; i++){
 
-            rotatedImg = rotateImg((double) i, readyImg2);
-            hash2 =  calcHash(getAvg(rotatedImg), rotatedImg);
-
-            hashvalue = hammingDistance(hash1, hash2);
-
-            Log.d(TAG, " The hash value at: " + (double) i + " degrees is " + hashvalue);
-
-        }*/
+           Mat readyImg = prepareImg();
 
 
 
 
+           hash1 =  calcHash(getAvg(readyImg), readyImg);
 
+            //hashvalue = hammingDistance(hash1, hash2);
 
+            Log.d(TAG, " The hash value at: " + hash1);
 
 
 
@@ -113,42 +115,43 @@ public class ImageCorrection {
 
     }
 
-    public Mat prepareImg(int imgId){
-
-        Mat matImg = new Mat();
+    public Mat prepareImg() {
         Mat newImg = new Mat();
         Mat greyImg = new Mat();
-        Mat edgedImg = new Mat();
-
-        int kernelSize = 5;
-
-        int sz =  100;
-
-        //Get img drawable and convert to bitmap
-        Bitmap bMap = BitmapFactory.decodeResource(context.getResources(), imgId);
-
-        //Now convert to Mat then reduce size to 32px and greyscale img
-        Utils.bitmapToMat(bMap, matImg);
-
-        int ratio = sz / matImg.rows();
-
-        Imgproc.resize(matImg, newImg, new Size(100, matImg.cols()*ratio));
 
 
+        try {
+            byte[] imageBytes = LoadImage("/home/emmanuelsq/AndroidStudioProjects/DisCloud/app/src/main/res/drawable/thrust.jpg");
+
+            Mat matImg = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.CV_LOAD_IMAGE_UNCHANGED);
+
+            Imgproc.resize(matImg, newImg, new Size(8, 8));
 
 
+            Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
 
-        Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
-
-        Imgproc.medianBlur(greyImg, greyImg, kernelSize);
-
-        Imgproc.Canny(greyImg, edgedImg, 30, 200);
+        }catch(Exception e){
+            Log.d(TAG, "ERRRRROR: " + e);
+        }
 
 
 
 
-        return edgedImg;
 
+        return greyImg;
+
+
+
+    }
+
+    public static byte[] LoadImage(String filePath) throws Exception {
+        File file = new File(filePath);
+        int size = (int)file.length();
+        byte[] buffer = new byte[size];
+        FileInputStream in = new FileInputStream(file);
+        in.read(buffer);
+        in.close();
+        return buffer;
     }
 
     private int hammingDistance(String hash1, String hash2){
@@ -172,18 +175,6 @@ public class ImageCorrection {
 
     }
 
-    public Mat rotateImg(double degrees, Mat image){
 
-        Mat dst = new Mat(new Size(32, 32), 1);
-
-        Mat rotationMatrix = Imgproc.getRotationMatrix2D(new Point(16, 16), degrees,1 );
-        Imgproc.warpAffine(image, dst, rotationMatrix, image.size());
-
-
-        return dst;
-
-
-
-    }
 
 }

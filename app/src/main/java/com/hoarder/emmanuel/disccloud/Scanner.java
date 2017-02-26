@@ -7,9 +7,21 @@ import android.os.Bundle;
 
 import android.util.Log;
 import android.view.SurfaceView;
-;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
@@ -19,6 +31,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -31,6 +44,7 @@ import org.opencv.utils.Converters;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -40,10 +54,11 @@ import static java.lang.StrictMath.abs;
 
 public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     JavaCameraView javaCameraView;
+    private Button testB;
     Mat mRgba;
     Mat imgGray;
     Mat imgCanny;
-    Mat approx;
+    Mat approx = new Mat();
 
     public static final String TAG = "MAIN ACTIVITY";
 
@@ -74,6 +89,17 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
+
+        testB = (Button) findViewById(R.id.testB);
+
+
+        testB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendRequest();
+            }
+        });
+
 
 
 
@@ -128,29 +154,30 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     }
 
     @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame)     {
         double largest = -1;
         int largestId = -1;
-
-
-        Mat result = new Mat();
+        Mat test = new Mat();
         mRgba = inputFrame.rgba();
+
         Mat temp_mRgba = mRgba.clone();
         Imgproc.resize( temp_mRgba, temp_mRgba, new Size(100,100));
+
         int ratio1 = mRgba.cols() / 100;
         int ratio2 = mRgba.rows() / 100;
 
 
-        //Imgproc.bilateralFilter(mRgba, mRgba, 11, 17,17);
-
         Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
-        //Imgproc.resize(imgGray, imgGray, new Size(100,100));
 
-        Imgproc.GaussianBlur(imgGray, imgGray, new Size(5, 5), 5);
 
+        Imgproc.bilateralFilter(imgGray, test, 0, 175, 0);
+
+
+        //Imgproc.GaussianBlur(imgGray, imgGray, new Size(5, 5), 0);
         //Imgproc.medianBlur(imgGray,imgGray,5);
+        //mgproc.adaptiveThreshold(imgGray, imgCanny, 255, 1, 1, 11, 2);
 
-        Imgproc.Canny(imgGray, imgCanny, 30, 200);
+        Imgproc.Canny(test, imgCanny, 30, 200);
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 
@@ -171,14 +198,14 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
 
 
-                if(contourarea > largest){
+                if(contourarea > largest && contourarea > 155){
 
                     MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
 
                     //double peri = temp_contour.total();
 
                     double peri =  Imgproc.arcLength(new_mat, true);
-                    Imgproc.approxPolyDP(new_mat, approxCurve_temp, peri*0.08, true);
+                    Imgproc.approxPolyDP(new_mat, approxCurve_temp, peri*0.02, true);
 
 
                     if(approxCurve_temp.total() == 4){
@@ -188,10 +215,6 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                     }
                 }
             }
-
-
-
-
 
             Point[] points = approxCurve.toArray();
 
@@ -220,8 +243,10 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                 source.add(p3);
                 source.add(p4);
 
+                source = sortPoints(source);
+
                 Mat startM = Converters.vector_Point2f_to_Mat(source);
-                result = warp(mRgba, startM, ratio1, ratio2);
+                warp(mRgba, startM, ratio1, ratio2);
 
             }
 
@@ -243,21 +268,20 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
     }
 
-    public Mat warp(Mat inputMat, Mat startM, int ratio1, int ratio2){
+    public void warp(Mat inputMat, Mat startM, int ratio1, int ratio2){
 
         int resultHeight = 90 * ratio2;
         int resultWidth = 90 * ratio1;
-
-
 
         Mat outputMat = new Mat(resultWidth, resultHeight, CvType.CV_8UC4);
 
 
 
         Point outPoint1 = new Point(0,0);
-        Point outPoint2 = new Point(0, resultHeight);
+        Point outPoint2 = new Point(resultWidth, 0);
         Point outPoint3 = new Point(resultWidth, resultHeight);
-        Point outPoint4 = new Point(resultWidth, 0);
+        Point outPoint4 = new Point(0, resultHeight);
+
 
         List<Point> dst = new ArrayList<>();
 
@@ -271,16 +295,14 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
         Mat perspectiveTransform = Imgproc.getPerspectiveTransform(startM, endM);
 
-        Imgproc.warpPerspective(inputMat, outputMat, perspectiveTransform, new Size(resultWidth, resultHeight));
+        Imgproc.warpPerspective(inputMat, outputMat, perspectiveTransform, new Size(resultWidth, resultHeight), Imgproc.INTER_CUBIC);
 
-
-
-        storeImage(outputMat);
-
-
-        return outputMat;
+        Imgproc.resize(outputMat,outputMat, new Size(600, 600));
+        Core.flip(outputMat,outputMat, 1);
+        Core.transpose(outputMat, outputMat);
+        approx = outputMat;
+        //sendRequest(outputMat); // send image request
     }
-
 
     public void storeImage(Mat mat){
         Mat temp_mat = new Mat();
@@ -306,13 +328,12 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
             Log.d(TAG, "Fail writing image to external storage");
     }
 
+    public List<Point> sortPoints(List<Point> points){
 
-
-    public List<Point> sortPoints(ArrayList<Point> points){
-        int lgst;
-        int smlst = -1;
-        int smlstId = 0;
-        int lgstID;
+        Point lgstPoint = new Point(0,0);
+        Point smlstPoint = new Point(999, 999);
+        Point smlstDiffPoint = new Point(999, 0);
+        Point lgstDiffPoint = new Point(0, 999);
         List<Point> sorted = new ArrayList<>();
 
 
@@ -321,28 +342,93 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
         for(Point point : points){
 
-            if(abs(point.x - point.y) < smlst){
+            if(abs(point.x + point.y) < (abs(smlstPoint.x + smlstPoint.y))){
+                smlstPoint = point;
+
+
+            }
+
+            if(abs(point.x + point.y) > (abs(lgstPoint.x + lgstPoint.y))){
+                lgstPoint = point;
+            }
+
+
+            if((point.x - point.y) < (smlstDiffPoint.x - smlstDiffPoint.y)){
+                smlstDiffPoint = point;
+
+            }
+
+            if((point.x - point.y) > (lgstDiffPoint.x - lgstDiffPoint.y)){
+                lgstDiffPoint = point;
 
             }
 
         }
 
 
-        sorted.add(points.get(smlstId));
+
+        sorted.add(smlstDiffPoint);
+        sorted.add(smlstPoint);
+        sorted.add(lgstDiffPoint);
+        sorted.add(lgstPoint);
 
 
 
 
-        return points;
+
+
+        return sorted;
     }
 
 
+    public void sendRequest(){
+
+        byte[] x = new byte[(int) (approx.total()*approx.channels())];
+
+        approx.get(0,0,x);
+
+
+        HashMap<String, byte[]> data = new HashMap<>();
+        data.put("image", x);
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "https://discloud.herokuapp.com/searchcover";
+
+
+            JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(data), new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+
+                    /*
+                    try {
+
+                        Toast.makeText(getApplicationContext(), response.getString("image"), Toast.LENGTH_LONG).show();
+
+                    }catch (JSONException e){
+
+                        Toast.makeText(getApplicationContext(), "Error in the json:  " + e, Toast.LENGTH_LONG).show();
+
+
+                    }
+                    */
+                }
+
+
+            }, new Response.ErrorListener() {
+                public void onErrorResponse(VolleyError error) {
+
+                    Toast.makeText(getApplicationContext(), "Something went wrong2: " + error, Toast.LENGTH_LONG).show();
+
+
+                }
+            });
+
+            queue.add(stringRequest);
 
 
 
 
-
-
+    }
 
 }
 
