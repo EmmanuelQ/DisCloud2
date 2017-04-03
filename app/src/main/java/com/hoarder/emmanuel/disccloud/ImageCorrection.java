@@ -29,42 +29,19 @@ import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
 
 public class ImageCorrection  {
 
-    private int hashvalue;
-    private Context context;
-    private String TAG = "MAIN ACTIVITY";
 
 
-
-
-    ImageCorrection() throws Exception{
-
-
-        Log.d(TAG, "HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE");
-
-          String hash1;
-
-
-
-           Mat readyImg = prepareImg();
-
-
-
-
-           hash1 =  calcHash(getAvg(readyImg), readyImg);
-
-            //hashvalue = hammingDistance(hash1, hash2);
-
-            Log.d(TAG, " The hash value at: " + hash1);
-
-
-
-    }
+    public String getHash(Mat image){
 
 
 
 
 
-    public int getVal(){
+        Mat readyImg = prepareImg(image);
+
+        String hashvalue = calcHash(getAvg(readyImg), readyImg);
+
+
         return hashvalue;
     }
 
@@ -85,8 +62,10 @@ public class ImageCorrection  {
         }
 
         //convert to hex
-        BigInteger big = new BigInteger(bits, 2);
-        String hextr = big.toString(16);
+       // BigInteger big = new BigInteger(bits, 2);
+        //String hextr = big.toString(16);
+        int decimal = Integer.parseInt(bits,2);
+        String hextr = Integer.toString(decimal,16);
 
 
 
@@ -94,9 +73,7 @@ public class ImageCorrection  {
     }
 
     public int getAvg(Mat greyImg){
-
         //Calculate average value for grey img
-
         int avg;
         double sum = 0.0;
         for(int i = 0; i < greyImg.rows(); i++){
@@ -110,70 +87,20 @@ public class ImageCorrection  {
         }
 
         avg = (int) sum / (int) greyImg.total();
-
         return avg;
 
     }
 
-    public Mat prepareImg() {
-        Mat newImg = new Mat();
+    public Mat prepareImg(Mat matImg){
         Mat greyImg = new Mat();
-
-
-        try {
-            byte[] imageBytes = LoadImage("/home/emmanuelsq/AndroidStudioProjects/DisCloud/app/src/main/res/drawable/thrust.jpg");
-
-            Mat matImg = Imgcodecs.imdecode(new MatOfByte(imageBytes), Imgcodecs.CV_LOAD_IMAGE_UNCHANGED);
-
-            Imgproc.resize(matImg, newImg, new Size(8, 8));
-
-
-            Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
-
-        }catch(Exception e){
-            Log.d(TAG, "ERRRRROR: " + e);
-        }
-
-
-
-
+        Mat newImg = new Mat();
+       // Imgproc.resize(matImg, newImg, new Size(8, 8));
+        Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
 
         return greyImg;
 
-
-
     }
 
-    public static byte[] LoadImage(String filePath) throws Exception {
-        File file = new File(filePath);
-        int size = (int)file.length();
-        byte[] buffer = new byte[size];
-        FileInputStream in = new FileInputStream(file);
-        in.read(buffer);
-        in.close();
-        return buffer;
-    }
-
-    private int hammingDistance(String hash1, String hash2){
-
-        char[] h1 = hash1.toCharArray();
-        char[] h2 = hash2.toCharArray();
-
-
-
-        int hamDist = 0;
-        for(int i =0; i < 238; i++){
-
-            if(h1[i] != h2[i]){
-                hamDist += 1;
-            }
-
-        }
-
-
-        return hamDist;
-
-    }
 
 
 

@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':libs', ':commons-codec-1.9'
 include ':openCVLibrary310'

@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DisCloud.iml" filepath="$PROJECT_DIR$/DisCloud.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/commons-codec-1.9/commons-codec-1.9.iml" filepath="$PROJECT_DIR$/commons-codec-1.9/commons-codec-1.9.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libs/libs.iml" filepath="$PROJECT_DIR$/libs/libs.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary310/openCVLibrary310.iml" filepath="$PROJECT_DIR$/openCVLibrary310/openCVLibrary310.iml" />
     </modules>
   </component>
