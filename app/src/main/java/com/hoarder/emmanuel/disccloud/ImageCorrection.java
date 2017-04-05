@@ -22,6 +22,8 @@ import java.math.BigInteger;
 
 import static com.hoarder.emmanuel.disccloud.MainActivity.TAG;
 import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
+import static org.opencv.imgproc.Imgproc.COLOR_BGRA2GRAY;
+import static org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY;
 
 /**
  * Created by emman on 15/10/2016.
@@ -33,15 +35,8 @@ public class ImageCorrection  {
 
     public String getHash(Mat image){
 
-
-
-
-
         Mat readyImg = prepareImg(image);
-
         String hashvalue = calcHash(getAvg(readyImg), readyImg);
-
-
         return hashvalue;
     }
 
@@ -62,10 +57,10 @@ public class ImageCorrection  {
         }
 
         //convert to hex
-       // BigInteger big = new BigInteger(bits, 2);
-        //String hextr = big.toString(16);
-        int decimal = Integer.parseInt(bits,2);
-        String hextr = Integer.toString(decimal,16);
+         BigInteger big = new BigInteger(bits, 2);
+         String hextr = big.toString(16);
+        //int decimal = Integer.parseInt(bits,2);
+        //String hextr = Integer.toString(decimal,16);
 
 
 
@@ -93,12 +88,10 @@ public class ImageCorrection  {
 
     public Mat prepareImg(Mat matImg){
         Mat greyImg = new Mat();
-        Mat newImg = new Mat();
-       // Imgproc.resize(matImg, newImg, new Size(8, 8));
-        Imgproc.cvtColor(newImg, greyImg, COLOR_BGR2GRAY);
+        Imgproc.resize(matImg, matImg, new Size(8, 8));
+        Imgproc.cvtColor(matImg, greyImg, COLOR_BGR2GRAY);
 
         return greyImg;
-
     }
 
 

@@ -15,6 +15,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import java.io.File;
 import java.lang.Exception;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -34,16 +36,14 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-
 import static java.lang.StrictMath.abs;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 
 public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -54,7 +54,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     Mat imgCanny;
     String sender;
     ImageReconService mService;
-    final String[] hashBuffer = {"iuiuiu", "oioin"}; // 1 element per frame per second
+    final String[] hashBuffer = new String[30]; // 1 element per frame per second
 
     int hashIndex = 0;
     boolean mBound = false;
@@ -93,21 +93,6 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         Intent intent = new Intent(Scanner.this, ImageReconService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
-
-
-        testB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mBound){
-                    String text = mService.sendRequest(hashBuffer);
-                    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG);
-
-                }
-            }
-        });
-
-        /*
-
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
 
@@ -117,18 +102,16 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
                     @Override
                     public void run() {
-                        if(mBound){
+                        if(mBound && hashBuffer[0] != null){ // ensure atleast one hash has been found before sending
                             String text = mService.sendRequest(hashBuffer);
-                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG);
-
+                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+                            Arrays.fill(hashBuffer, null);
+                            hashIndex = 0;
                         }
-
-
-
                     };
                 });
             }
-        }, 0, 5000);*/
+        }, 0, 2000);
 
 
     }
@@ -198,11 +181,8 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         mRgba = inputFrame.rgba();
         Mat temp_mRgba = mRgba.clone();
         Imgproc.resize( temp_mRgba, temp_mRgba, new Size(100,100));
-        Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_BGRA2GRAY);
         Imgproc.bilateralFilter(imgGray, test, 0, 175, 0);
-        //Imgproc.GaussianBlur(imgGray, imgGray, new Size(5, 5), 0);
-        //Imgproc.medianBlur(imgGray,imgGray,5);
-        //mgproc.adaptiveThreshold(imgGray, imgCanny, 255, 1, 1, 11, 2);
         Imgproc.Canny(test, imgCanny, 30, 200);
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
@@ -263,28 +243,22 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
                 Mat startM = Converters.vector_Point2f_to_Mat(source);
                 warp(mRgba, startM, ratio1, ratio2);
-
             }
             return mRgba;
 
 
         } catch ( Exception e) {
-            Log.d(TAG, "CANT FIND IT MATE");
+           Log.d(TAG, "EXCEPTION" + e);
             return mRgba;
 
         }
-
-
-
-
     }
-    public void warp(Mat inputMat, Mat startM, int ratio1, int ratio2) throws Exception{
 
+    public void warp(Mat inputMat, Mat startM, int ratio1, int ratio2) throws Exception{
         int resultHeight = 90 * ratio2;
         int resultWidth = 90 * ratio1;
 
         Mat outputMat = new Mat(resultWidth, resultHeight, CvType.CV_8UC4);
-
         Point outPoint1 = new Point(0,0);
         Point outPoint2 = new Point(resultWidth, 0);
         Point outPoint3 = new Point(resultWidth, resultHeight);
@@ -308,7 +282,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
         ImageCorrection hash = new ImageCorrection();
         bufferController(hash.getHash(outputMat));
-        // send image request
+        //storeImage(outputMat);
     }
     public List<Point> sortPoints(List<Point> points){
 
@@ -342,11 +316,31 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     }
 
     public void bufferController(String hash){
-       //hashBuffer[hashIndex%30] = hash;
-       // hashIndex+=1;// move pointer one place "right"
+       hashBuffer[hashIndex%30] = hash;
+        hashIndex+=1;
     }
 
+    public void storeImage(Mat mat){
+        Mat temp_mat = new Mat();
+        Random generator = new Random();
 
+        Imgproc.cvtColor(mat, temp_mat, Imgproc.COLOR_RGBA2BGR, 3);
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        String filename = ""+generator.nextInt(20)+".png";
+        File file = new File(path, filename);
+
+        Boolean bool = null;
+
+        filename = file.toString();
+        bool = Imgcodecs.imwrite(filename, temp_mat);
+
+
+        if (bool == true)
+            Log.d(TAG, "SUCCESS writing image to external storage");
+        else
+            Log.d(TAG, "Fail writing image to external storage");
+    }
 
 
 }

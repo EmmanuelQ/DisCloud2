@@ -58,8 +58,8 @@ public class ImageReconService extends IntentService {
     public String sendRequest(String[] hashes){
 
 
-        HashMap<String, String> data = new HashMap<>();
-        data.put("hashes",  "hashes");
+        HashMap<String, String[]> data = new HashMap<>();
+        data.put("hashes",  hashes);
 
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "https://discloud.herokuapp.com/searchcover";
@@ -71,7 +71,7 @@ public class ImageReconService extends IntentService {
 
 
                 try {
-                    text = response.getString("image");
+                    text = response.getString("hello");
 
                 }catch (JSONException e){
                     text = "Error in the json:  " +e;
@@ -86,7 +86,7 @@ public class ImageReconService extends IntentService {
                 queue.add(stringRequest);
 
 
-        return "ONOINONOIONO";
+        return text;
     }
 
 
