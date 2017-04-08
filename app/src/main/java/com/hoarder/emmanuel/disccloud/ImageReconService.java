@@ -71,7 +71,8 @@ public class ImageReconService extends IntentService {
 
 
                 try {
-                    text = response.getString("hello");
+                    text = response.getString("title");
+                    text += ","+response.getString("artist");
 
                 }catch (JSONException e){
                     text = "Error in the json:  " +e;

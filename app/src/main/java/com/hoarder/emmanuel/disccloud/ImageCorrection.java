@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import static com.hoarder.emmanuel.disccloud.MainActivity.TAG;
 import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
 import static org.opencv.imgproc.Imgproc.COLOR_BGRA2GRAY;
+import static org.opencv.imgproc.Imgproc.COLOR_RGB2GRAY;
 import static org.opencv.imgproc.Imgproc.COLOR_RGBA2GRAY;
 
 /**
@@ -42,12 +43,10 @@ public class ImageCorrection  {
 
     public String calcHash(int avg, Mat greyImg){
 
-
         String bits="";
         for(int i = 0; i < greyImg.rows(); i++){
             for(int j = 0; j < greyImg.cols(); j++){
-
-                if(avg <= (int) greyImg.get(i, j)[0]){
+                if((int) greyImg.get(i, j)[0] < avg){
                     bits+="1";
 
                 }else{
@@ -73,12 +72,9 @@ public class ImageCorrection  {
         double sum = 0.0;
         for(int i = 0; i < greyImg.rows(); i++){
             for(int j = 0; j < greyImg.cols(); j++){
-
                 double[] pixel = greyImg.get(i, j);
                 sum += pixel[0];
-
             }
-
         }
 
         avg = (int) sum / (int) greyImg.total();
@@ -88,8 +84,8 @@ public class ImageCorrection  {
 
     public Mat prepareImg(Mat matImg){
         Mat greyImg = new Mat();
-        Imgproc.resize(matImg, matImg, new Size(8, 8));
-        Imgproc.cvtColor(matImg, greyImg, COLOR_BGR2GRAY);
+        Imgproc.resize(matImg, matImg, new Size(8,8));
+        Imgproc.cvtColor(matImg, greyImg, COLOR_RGBA2GRAY, 3);
 
         return greyImg;
     }

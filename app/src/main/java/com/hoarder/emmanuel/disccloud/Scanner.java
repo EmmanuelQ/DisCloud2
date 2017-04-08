@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -14,6 +15,9 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -52,10 +56,13 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     Mat mRgba;
     Mat imgGray;
     Mat imgCanny;
-    String sender;
     ImageReconService mService;
     final String[] hashBuffer = new String[30]; // 1 element per frame per second
-
+    String text = "Title,Artist";
+    String[] fields;
+    private TextView textViewA = null;
+    private TextView textViewT = null;
+    private LinearLayout lView;
     int hashIndex = 0;
     boolean mBound = false;
     public static final String TAG = "MAIN ACTIVITY";
@@ -84,14 +91,15 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
-
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
 
-        testB = (Button) findViewById(R.id.testB);
         Intent intent = new Intent(Scanner.this, ImageReconService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+
+
 
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -103,8 +111,32 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                     @Override
                     public void run() {
                         if(mBound && hashBuffer[0] != null){ // ensure atleast one hash has been found before sending
-                            String text = mService.sendRequest(hashBuffer);
-                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+                            text = mService.sendRequest(hashBuffer);
+
+                            //Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+                            if(lView != null){
+                                lView.removeAllViews();
+
+                            }
+                            lView = (LinearLayout) findViewById(R.id.mylinear);
+                            textViewT = new TextView(Scanner.this);
+                            textViewT.setX(100);
+                            textViewT.setTextSize((float) 20.0);
+                            textViewT.setTextColor(Color.GREEN);
+
+                            textViewA = new TextView(Scanner.this);
+                            textViewA.setX(1500);
+                            textViewA.setTextSize((float) 20.0);
+                            textViewA.setTextColor(Color.GREEN);
+
+                            if(text != null){
+                                fields = text.split(",");
+                                textViewT.setText(fields[0]);
+                                textViewA.setText(fields[1]);
+                            }
+                            lView.addView(textViewT);
+                            lView.addView(textViewA);
+                            Log.d(TAG,"----"+text+ "------");
                             Arrays.fill(hashBuffer, null);
                             hashIndex = 0;
                         }
@@ -181,7 +213,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         mRgba = inputFrame.rgba();
         Mat temp_mRgba = mRgba.clone();
         Imgproc.resize( temp_mRgba, temp_mRgba, new Size(100,100));
-        Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_BGRA2GRAY);
+        Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_RGBA2GRAY);
         Imgproc.bilateralFilter(imgGray, test, 0, 175, 0);
         Imgproc.Canny(test, imgCanny, 30, 200);
 
@@ -240,7 +272,6 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                 source.add(p4);
 
                 source = sortPoints(source);
-
                 Mat startM = Converters.vector_Point2f_to_Mat(source);
                 warp(mRgba, startM, ratio1, ratio2);
             }
@@ -255,8 +286,8 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     }
 
     public void warp(Mat inputMat, Mat startM, int ratio1, int ratio2) throws Exception{
-        int resultHeight = 90 * ratio2;
-        int resultWidth = 90 * ratio1;
+        int resultHeight = 50 * ratio2;
+        int resultWidth = 50 * ratio1;
 
         Mat outputMat = new Mat(resultWidth, resultHeight, CvType.CV_8UC4);
         Point outPoint1 = new Point(0,0);
@@ -276,7 +307,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
 
         Imgproc.warpPerspective(inputMat, outputMat, perspectiveTransform, new Size(resultWidth, resultHeight), Imgproc.INTER_CUBIC);
 
-        Imgproc.resize(outputMat,outputMat, new Size(8, 8));
+        //Imgproc.resize(outputMat,outputMat, new Size(300, 300));
         Core.flip(outputMat,outputMat, 1);
         Core.transpose(outputMat, outputMat);
 
