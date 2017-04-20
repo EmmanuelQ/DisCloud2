@@ -8,17 +8,14 @@ import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
-import android.widget.Button;
+
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import java.io.File;
 import java.lang.Exception;
@@ -45,28 +42,30 @@ import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+
 import static java.lang.StrictMath.abs;
 
 
 public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     JavaCameraView javaCameraView;
-    private Button testB;
     Mat mRgba;
     Mat imgGray;
     Mat imgCanny;
     ImageReconService mService;
     final String[] hashBuffer = new String[30]; // 1 element per frame per second
-    String text = "Title,Artist";
+    String text = "";
     String[] fields;
     private TextView textViewA = null;
     private TextView textViewT = null;
+    private TextView textViewV = null;
     private LinearLayout lView;
     int hashIndex = 0;
     boolean mBound = false;
     public static final String TAG = "MAIN ACTIVITY";
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private String lastTitle = "Title";
+    private String lastArtist = "Artist";
+    private String lastValue = "";
+    private int counter =0; // counter is to make sure record not recognised does not appear too often
 
     BaseLoaderCallback mLoaderCallBack = new BaseLoaderCallback(this) {
         @Override
@@ -94,7 +93,6 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         javaCameraView.setCvCameraViewListener(this);
-
         Intent intent = new Intent(Scanner.this, ImageReconService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
@@ -112,40 +110,66 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                     public void run() {
                         if(mBound && hashBuffer[0] != null){ // ensure atleast one hash has been found before sending
                             text = mService.sendRequest(hashBuffer);
+                            Arrays.fill(hashBuffer, null);
 
-                            //Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
                             if(lView != null){
                                 lView.removeAllViews();
-
                             }
-                            lView = (LinearLayout) findViewById(R.id.mylinear);
+                            lView = (LinearLayout) findViewById(R.id.mylinear); // create horizontal layout to add text views stacked ontop of each other vertically
                             textViewT = new TextView(Scanner.this);
-                            textViewT.setX(100);
+                            textViewT.setX(1600);
                             textViewT.setTextSize((float) 20.0);
                             textViewT.setTextColor(Color.GREEN);
 
                             textViewA = new TextView(Scanner.this);
-                            textViewA.setX(1500);
+                            textViewA.setX(1600);
+                            textViewA.setY(50);
                             textViewA.setTextSize((float) 20.0);
                             textViewA.setTextColor(Color.GREEN);
 
+                            textViewV = new TextView(Scanner.this);
+                            textViewV.setX(1600);
+                            textViewV.setY(100);
+                            textViewV.setTextSize((float) 20.0);
+                            textViewV.setTextColor(Color.YELLOW);
+
                             if(text != null){
                                 fields = text.split(",");
-                                textViewT.setText(fields[0]);
-                                textViewA.setText(fields[1]);
+                                if(!(fields[0].equals("na"))){
+                                    if(fields.length == 3){
+                                        textViewT.setText(fields[0]);
+                                        textViewA.setText(fields[1]);
+                                        textViewV.setText(textRating(fields[2]));
+                                        //also set last elements seen as to not keep switching
+                                        lastTitle = fields[0];
+                                        lastArtist = fields[1];
+                                        lastValue = textRating(fields[2]);
+                                        counter = 0;
+                                    }
+                                }else{
+                                    counter += 1;
+                                    if(counter == 5){
+                                        lastTitle = "Record not recogonsied";
+                                        lastArtist = "try different background";
+                                        lastValue = "";
+                                        counter = 0;
+                                    }
+                                    textViewT.setText(lastTitle);
+                                    textViewA.setText(lastArtist);
+                                    textViewV.setText(lastValue);
+
+                                }
                             }
                             lView.addView(textViewT);
                             lView.addView(textViewA);
+                            lView.addView(textViewV);
                             Log.d(TAG,"----"+text+ "------");
-                            Arrays.fill(hashBuffer, null);
                             hashIndex = 0;
                         }
                     };
                 });
             }
-        }, 0, 2000);
-
-
+        }, 0, 1500);
     }
     private ServiceConnection  mConnection = new ServiceConnection(){
 
@@ -190,13 +214,9 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     }
     @Override
     public void onCameraViewStarted(int width, int height) {
-
         mRgba = new Mat(height, width, CvType.CV_8UC4);
         imgGray = new Mat(height, width, CvType.CV_8UC1);
         imgCanny = new Mat(height, width, CvType.CV_8UC1);
-
-
-
     }
     @Override
     public void onCameraViewStopped() {
@@ -212,7 +232,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         int ratio2 = mRgba.rows() / 100;
         mRgba = inputFrame.rgba();
         Mat temp_mRgba = mRgba.clone();
-        Imgproc.resize( temp_mRgba, temp_mRgba, new Size(100,100));
+        Imgproc.resize( temp_mRgba, temp_mRgba, new Size(100,100)); //shrink image as it makes contour detection easier
         Imgproc.cvtColor(temp_mRgba, imgGray, Imgproc.COLOR_RGBA2GRAY);
         Imgproc.bilateralFilter(imgGray, test, 0, 175, 0);
         Imgproc.Canny(test, imgCanny, 30, 200);
@@ -225,8 +245,6 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
             MatOfPoint temp_contour;
             MatOfPoint2f approxCurve = new MatOfPoint2f();
             MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
-
-
 
             for (int idx = 0; idx < contours.size(); idx++) {
                 temp_contour = contours.get(idx);
@@ -253,7 +271,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                 Imgproc.drawContours(mRgba, contours, largestId, new Scalar(255, 0, 255), 3);
 
                 double[] temp_double;
-                temp_double = approxCurve.get(0, 0);
+                temp_double = approxCurve.get(0, 0); // because we have been using a shrunken image we need to re expand the points to their relatie locations in the full size image
                 Point p1 = new Point(temp_double[0]*ratio1, temp_double[1]*ratio2);
 
                 temp_double = approxCurve.get(1, 0);
@@ -272,7 +290,7 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                 source.add(p4);
 
                 source = sortPoints(source);
-                Mat startM = Converters.vector_Point2f_to_Mat(source);
+                Mat startM = Converters.vector_Point2f_to_Mat(source); // new image with the image inside the contour boundary
                 warp(mRgba, startM, ratio1, ratio2);
             }
             return mRgba;
@@ -286,8 +304,8 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
     }
 
     public void warp(Mat inputMat, Mat startM, int ratio1, int ratio2) throws Exception{
-        int resultHeight = 50 * ratio2;
-        int resultWidth = 50 * ratio1;
+        int resultHeight = 100 * ratio2;
+        int resultWidth = 100 * ratio1;
 
         Mat outputMat = new Mat(resultWidth, resultHeight, CvType.CV_8UC4);
         Point outPoint1 = new Point(0,0);
@@ -351,28 +369,14 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
         hashIndex+=1;
     }
 
-    public void storeImage(Mat mat){
-        Mat temp_mat = new Mat();
-        Random generator = new Random();
+    public String textRating(String val){
+        int rating = Integer.parseInt(val);
+        String dispRating = "";
+        for(int i =0; i < rating; i++){
+            dispRating += "☆";
+        }
 
-        Imgproc.cvtColor(mat, temp_mat, Imgproc.COLOR_RGBA2BGR, 3);
-
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        String filename = ""+generator.nextInt(20)+".png";
-        File file = new File(path, filename);
-
-        Boolean bool = null;
-
-        filename = file.toString();
-        bool = Imgcodecs.imwrite(filename, temp_mat);
-
-
-        if (bool == true)
-            Log.d(TAG, "SUCCESS writing image to external storage");
-        else
-            Log.d(TAG, "Fail writing image to external storage");
+        return dispRating;
     }
-
-
 }
 

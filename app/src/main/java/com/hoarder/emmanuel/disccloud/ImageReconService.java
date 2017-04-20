@@ -34,8 +34,6 @@ public class ImageReconService extends IntentService {
     public String text;
 
 
-
-
     public ImageReconService(){
         super("ImageReconService");
     }
@@ -55,7 +53,7 @@ public class ImageReconService extends IntentService {
     }
 
 
-    public String sendRequest(String[] hashes){
+    public String sendRequest(String[] hashes){ // send batch of hashes to remote server
 
 
         HashMap<String, String[]> data = new HashMap<>();
@@ -65,14 +63,13 @@ public class ImageReconService extends IntentService {
         String url = "https://discloud.herokuapp.com/searchcover";
 
 
-        JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(data), new Response.Listener<JSONObject>() {
+        JsonObjectRequest stringRequest = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(data), new Response.Listener<JSONObject>() { // create request with and set response handler
             @Override
             public void onResponse(JSONObject response) {
-
-
-                try {
+                try { // stitch together response to string for Caller.
                     text = response.getString("title");
                     text += ","+response.getString("artist");
+                    text += ","+response.getString("value");
 
                 }catch (JSONException e){
                     text = "Error in the json:  " +e;
@@ -84,7 +81,7 @@ public class ImageReconService extends IntentService {
                     }
                 });
 
-                queue.add(stringRequest);
+        queue.add(stringRequest); // add request to queue
 
 
         return text;

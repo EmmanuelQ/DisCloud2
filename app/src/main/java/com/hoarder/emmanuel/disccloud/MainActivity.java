@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
-    private NavigationView nvDrawer;
     private Button camButton;
     private Button collectionButton;
     private Button marketplaceButton;
@@ -74,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     static {
-
+        // make sure opencv cv has been loaded correctly
         if(OpenCVLoader.initDebug()) {
             Log.d(TAG, "OPENCV is loaded");
         }else{
@@ -160,10 +159,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // `onPostCreate` called when activity start-up is complete after `onStart()`
-    // NOTE 1: Make sure to override the method with only a single `Bundle` argument
-    // Note 2: Make sure you implement the correct `onPostCreate(Bundle savedInstanceState)` method.
-    // There are 2 signatures and only `onPostCreate(Bundle state)` shows the hamburger icon.
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -177,37 +173,6 @@ public class MainActivity extends AppCompatActivity {
         // Pass any configuration change to the drawer toggles
         drawerToggle.onConfigurationChanged(newConfig);
     }
-
-
-    /*
-
-
-
-
-     setContentView(R.layout.activity_main);
-        ImageCorrection img = new ImageCorrection(getApplicationContext(), R.drawable.original, R.drawable.original);
-
-        ImageView imageView = (ImageView) findViewById(R.id.test_img);
-
-        imageView.setImageBitmap(img.img);
-     */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

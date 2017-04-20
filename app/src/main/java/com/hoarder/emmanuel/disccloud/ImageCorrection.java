@@ -58,12 +58,8 @@ public class ImageCorrection  {
         //convert to hex
          BigInteger big = new BigInteger(bits, 2);
          String hextr = big.toString(16);
-        //int decimal = Integer.parseInt(bits,2);
-        //String hextr = Integer.toString(decimal,16);
 
-
-
-        return hextr;
+         return hextr;
     }
 
     public int getAvg(Mat greyImg){
@@ -85,7 +81,7 @@ public class ImageCorrection  {
     public Mat prepareImg(Mat matImg){
         Mat greyImg = new Mat();
         Imgproc.resize(matImg, matImg, new Size(8,8));
-        Imgproc.cvtColor(matImg, greyImg, COLOR_RGBA2GRAY, 3);
+        Imgproc.cvtColor(matImg, greyImg, COLOR_RGBA2GRAY, 3); // frame is rgba so convert to gray
 
         return greyImg;
     }
