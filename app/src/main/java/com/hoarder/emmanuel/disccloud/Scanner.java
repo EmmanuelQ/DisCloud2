@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -115,20 +116,24 @@ public class Scanner extends AppCompatActivity implements CameraBridgeViewBase.C
                             if(lView != null){
                                 lView.removeAllViews();
                             }
+                            DisplayMetrics displayMetrics = new DisplayMetrics(); // we need to get the height and width of screen to keep text view relative
+                            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                            int width = displayMetrics.widthPixels;
+                            float posX = (float) (width*0.6);
                             lView = (LinearLayout) findViewById(R.id.mylinear); // create horizontal layout to add text views stacked ontop of each other vertically
                             textViewT = new TextView(Scanner.this);
-                            textViewT.setX(1600);
+                            textViewT.setX(posX);
                             textViewT.setTextSize((float) 20.0);
                             textViewT.setTextColor(Color.GREEN);
 
                             textViewA = new TextView(Scanner.this);
-                            textViewA.setX(1600);
+                            textViewA.setX(posX);
                             textViewA.setY(50);
                             textViewA.setTextSize((float) 20.0);
                             textViewA.setTextColor(Color.GREEN);
 
                             textViewV = new TextView(Scanner.this);
-                            textViewV.setX(1600);
+                            textViewV.setX(posX);
                             textViewV.setY(100);
                             textViewV.setTextSize((float) 20.0);
                             textViewV.setTextColor(Color.YELLOW);
